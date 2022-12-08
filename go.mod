@@ -1,4 +1,4 @@
-module github.com/jdewinnekotsd
+module github.com/jdewinne/kotsd
 
 go 1.19
 

@@ -23,6 +23,6 @@ func AddInstanceCmd() *cobra.Command {
 	cmd.Flags().StringP("name", "n", "", "Name of the kots instance (should be unique)")
 	cmd.Flags().StringP("endpoint", "e", "", "URL of the kots instance, for example http://10.10.10.5:8800")
 	cmd.Flags().StringP("password", "p", "", "Password of the kots instance")
-	cmd.Flags().BoolP("tlsVerify", "n", true, "If false, insecure or self signed tls for the kots instance will be allowed")
+	cmd.Flags().BoolP("tlsVerify", "v", true, "If false, insecure or self signed tls for the kots instance will be allowed")
 	return cmd
 }
