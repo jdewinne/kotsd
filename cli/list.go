@@ -26,7 +26,10 @@ func ListCmd() *cobra.Command {
 			}
 			for range runtime_conf.Configs {
 				i := <-c
-				fmt.Println("Name:", i.Name, "- Kots version:", i.KotsVersion)
+				fmt.Println("Name:", i.Name, "- Kots version:", i.KotsVersion, "Connection:", i.Error)
+				for _, app := range i.Apps {
+					fmt.Println("Application:", app.Name, "- Version:", app.Version, "- Upgrade Available:", app.PendingVersion)
+				}
 			}
 			return nil
 
@@ -39,9 +42,24 @@ func ListCmd() *cobra.Command {
 func getKotsVersion(c chan kotsd.Instance, i kotsd.Instance) {
 	kh, err := i.GetKotsHealthz()
 	if err != nil {
-		i.KotsVersion = "(error)"
+		i.Error = err.Error()
 	} else {
 		i.KotsVersion = kh.Version
 	}
+	apps, err := i.GetApps()
+	if err != nil {
+		i.Error = err.Error()
+	} else {
+		for _, app := range apps.Apps {
+			application := kotsd.Application{Name: app.Name, Version: app.Downstream.CurrentVersion.VersionLabel}
+			var pVersions []string
+			for _, pv := range app.Downstream.PendingVersions {
+				pVersions = append(pVersions, pv.VersionLabel)
+			}
+			application.PendingVersion = pVersions
+			i.Apps = append(i.Apps, application)
+		}
+	}
+
 	c <- i
 }

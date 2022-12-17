@@ -1,6 +1,7 @@
 package kotsd
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
 
@@ -16,10 +18,18 @@ type KotsdConfig struct {
 	Configs []Instance `yaml:"instances"`
 }
 type Instance struct {
-	Name        string `yaml:"name"`
-	Endpoint    string `yaml:"endpoint"`
-	Password    string `yaml:"password"`
-	KotsVersion string `yaml:"-"`
+	Name        string        `yaml:"name"`
+	Endpoint    string        `yaml:"endpoint"`
+	Password    string        `yaml:"password"`
+	KotsVersion string        `yaml:"-"`
+	Apps        []Application `yaml:"-"`
+	Error       string
+}
+
+type Application struct {
+	Name           string
+	Version        string
+	PendingVersion []string
 }
 
 func ReadConfig(cfgFile string) ([]byte, error) {
@@ -103,4 +113,106 @@ func (instance Instance) GetKotsHealthz() (HealthzResponse, error) {
 
 	return healthz, nil
 
+}
+
+func (instance Instance) GetApps() (*ListAppsResponse, error) {
+	token, err := instance.getLoginToken()
+	if err != nil {
+		errors.Wrap(err, "get login token")
+	}
+
+	if token == nil {
+		return nil, fmt.Errorf("could not connect")
+	}
+	appsReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/apps", instance.Endpoint), nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "build apps request")
+	}
+	appsReq.Header.Set("Accept", "application/json")
+	appsReq.Header.Set("Authorization", *token)
+	appsResp, err := http.DefaultClient.Do(appsReq)
+	if err != nil {
+		return nil, errors.Wrap(err, "send apps request")
+	}
+
+	defer appsResp.Body.Close()
+	if appsResp.StatusCode != 200 {
+		body, _ := io.ReadAll(appsResp.Body)
+		return nil, fmt.Errorf("apps %d: %s", appsResp.StatusCode, body)
+	}
+	bodyBytes, err := io.ReadAll(appsResp.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "read body")
+	}
+	var body ListAppsResponse
+	if err := json.NewDecoder(bytes.NewReader(bodyBytes)).Decode(&body); err != nil {
+		return nil, errors.Wrap(err, "decode body")
+	}
+	return &body, nil
+
+}
+
+type ListAppsResponse struct {
+	Apps []ResponseApp `json:"apps"`
+}
+
+type ResponseApp struct {
+	Name       string             `json:"name"`
+	Downstream ResponseDownstream `json:"downstream"`
+}
+
+type ResponseDownstream struct {
+	CurrentVersion  *DownstreamVersion   `json:"currentVersion"`
+	PendingVersions []*DownstreamVersion `json:"pendingVersions"`
+}
+
+type DownstreamVersion struct {
+	VersionLabel string `json:"versionLabel"`
+}
+
+func (instance Instance) getLoginToken() (*string, error) {
+	password, err := base64.StdEncoding.DecodeString(instance.Password)
+	if err != nil {
+		return nil, errors.Wrap(err, "decode password")
+	}
+
+	loginParams := map[string]string{
+		"password": string(password),
+	}
+
+	loginBody, err := json.Marshal(loginParams)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshal login params")
+	}
+
+	loginReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/login", instance.Endpoint), bytes.NewBuffer(loginBody))
+	if err != nil {
+		return nil, errors.Wrap(err, "build login request")
+	}
+	loginReq.Header.Set("Accept", "application/json")
+	loginReq.Header.Set("Content-Type", "application/json")
+	loginResp, err := http.DefaultClient.Do(loginReq)
+	if err != nil {
+		return nil, errors.Wrap(err, "send login request")
+	}
+
+	defer loginResp.Body.Close()
+	if loginResp.StatusCode != 200 {
+		body, _ := io.ReadAll(loginResp.Body)
+		return nil, fmt.Errorf("login %d: %s", loginResp.StatusCode, body)
+	}
+	bodyBytes, err := io.ReadAll(loginResp.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "read body")
+	}
+	var body SessionResponse
+	if err := json.NewDecoder(bytes.NewReader(bodyBytes)).Decode(&body); err != nil {
+		return nil, errors.Wrap(err, "decode body")
+	}
+
+	return &body.Token, nil
+}
+
+type SessionResponse struct {
+	Token string `json:"token"`
 }
