@@ -1,9 +1,10 @@
 package cli
 
 import (
-	"fmt"
+	"os"
 
 	kotsd "github.com/jdewinne/kotsd/pkg"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -19,18 +20,31 @@ func ListCmd() *cobra.Command {
 			viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("Instances:")
 			c := make(chan kotsd.Instance, len(runtime_conf.Configs))
 			for _, instance := range runtime_conf.Configs {
-				go getKotsVersion(c, instance)
+				go getVersions(c, instance)
 			}
+
+			t := table.NewWriter()
+			t.SetOutputMirror(os.Stdout)
+			t.SetStyle(table.StyleColoredBlackOnBlueWhite)
+			t.AppendHeader(table.Row{"Name", "Kots Version", "Connection", "Application Name", "Version", "Upgrade Available"})
 			for range runtime_conf.Configs {
 				i := <-c
-				fmt.Println("Name:", i.Name, "- Kots version:", i.KotsVersion, "Connection:", i.Error)
-				for _, app := range i.Apps {
-					fmt.Println("Application:", app.Name, "- Version:", app.Version, "- Upgrade Available:", app.PendingVersion)
+				if len(i.Apps) == 0 {
+					t.AppendRows([]table.Row{
+						{i.Name, i.KotsVersion, i.Error},
+					})
 				}
+				for _, app := range i.Apps {
+					t.AppendRows([]table.Row{
+						{i.Name, i.KotsVersion, i.Error, app.Name, app.Version, app.PendingVersion},
+					})
+				}
+				t.AppendSeparator()
 			}
+			t.AppendSeparator()
+			t.Render()
 			return nil
 
 		},
@@ -39,7 +53,7 @@ func ListCmd() *cobra.Command {
 	return cmd
 }
 
-func getKotsVersion(c chan kotsd.Instance, i kotsd.Instance) {
+func getVersions(c chan kotsd.Instance, i kotsd.Instance) {
 	kh, err := i.GetKotsHealthz()
 	if err != nil {
 		i.Error = err.Error()
