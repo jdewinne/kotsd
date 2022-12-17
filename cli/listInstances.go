@@ -1,8 +1,9 @@
 package cli
 
 import (
-	"fmt"
+	"os"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -18,10 +19,15 @@ func ListInstancesCmd() *cobra.Command {
 			viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("Instances:")
+			t := table.NewWriter()
+			t.SetOutputMirror(os.Stdout)
+			t.SetStyle(table.StyleColoredBlackOnBlueWhite)
+			t.AppendHeader(table.Row{"Name", "Endpoint"})
 			for _, instance := range runtime_conf.Configs {
-				fmt.Println("Name:", instance.Name, "- Endpoint:", instance.Endpoint)
+				t.AppendRows([]table.Row{{instance.Name, instance.Endpoint}})
 			}
+			t.AppendSeparator()
+			t.Render()
 			return nil
 
 		},
