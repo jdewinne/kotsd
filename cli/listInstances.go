@@ -26,7 +26,6 @@ func ListInstancesCmd() *cobra.Command {
 			for _, instance := range runtime_conf.Configs {
 				t.AppendRows([]table.Row{{instance.Name, instance.Endpoint}})
 			}
-			t.AppendSeparator()
 			t.Render()
 			return nil
 

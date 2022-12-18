@@ -43,7 +43,6 @@ func ListCmd() *cobra.Command {
 				}
 				t.AppendSeparator()
 			}
-			t.AppendSeparator()
 			t.Render()
 			return nil
 

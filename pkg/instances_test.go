@@ -2,6 +2,8 @@ package kotsd
 
 import (
 	"encoding/base64"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -127,4 +129,41 @@ func TestAddInstanceExisting(t *testing.T) {
 			assert.Equal(t, tt.wantOut.Configs[1], actual.Configs[1])
 		})
 	}
+}
+
+func TestGetLoginToken(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/login" {
+			t.Errorf("Expected to request '/api/v1/login', got: %s", r.URL.Path)
+		}
+		if r.Header.Get("Accept") != "application/json" {
+			t.Errorf("Expected Accept: application/json header, got: %s", r.Header.Get("Accept"))
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"token":"abcdefgh"}`))
+	}))
+	defer server.Close()
+	i := Instance{Name: "t1", Endpoint: server.URL, Password: base64.StdEncoding.EncodeToString([]byte("1234abcd"))}
+
+	value, err := i.getLoginToken()
+	require.NoError(t, err)
+	assert.Equal(t, "abcdefgh", *value)
+}
+
+func TestGetInvalidPassword(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/login" {
+			t.Errorf("Expected to request '/api/v1/login', got: %s", r.URL.Path)
+		}
+		if r.Header.Get("Accept") != "application/json" {
+			t.Errorf("Expected Accept: application/json header, got: %s", r.Header.Get("Accept"))
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Invalid password. Please try again."}`))
+	}))
+	defer server.Close()
+	i := Instance{Name: "t1", Endpoint: server.URL, Password: base64.StdEncoding.EncodeToString([]byte("1234abcd"))}
+
+	_, err := i.getLoginToken()
+	require.Error(t, err, "Login 403: {\"error\":\"Invalid password. Please try again.\"}")
 }
