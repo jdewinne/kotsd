@@ -2,6 +2,7 @@ package kotsd
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -18,12 +19,13 @@ type KotsdConfig struct {
 	Configs []Instance `yaml:"instances"`
 }
 type Instance struct {
-	Name        string        `yaml:"name"`
-	Endpoint    string        `yaml:"endpoint"`
-	Password    string        `yaml:"password"`
-	KotsVersion string        `yaml:"-"`
-	Apps        []Application `yaml:"-"`
-	Error       string
+	Name               string        `yaml:"name"`
+	Endpoint           string        `yaml:"endpoint"`
+	Password           string        `yaml:"password"`
+	InsecureSkipVerify bool          `yaml:"insecureSkipVerify"`
+	KotsVersion        string        `yaml:"-"`
+	Apps               []Application `yaml:"-"`
+	Error              string        `yaml:"-"`
 }
 
 type Application struct {
@@ -67,8 +69,8 @@ func WriteConfig(config *KotsdConfig, cfgFile string) {
 	}
 }
 
-func (kc *KotsdConfig) AddInstance(name string, endpoint string, password string) {
-	instance := Instance{Name: name, Endpoint: endpoint, Password: base64.StdEncoding.EncodeToString([]byte(password))}
+func (kc *KotsdConfig) AddInstance(name string, endpoint string, password string, tlsVerify bool) {
+	instance := Instance{Name: name, Endpoint: endpoint, Password: base64.StdEncoding.EncodeToString([]byte(password)), InsecureSkipVerify: !tlsVerify}
 	instances := kc.Configs
 	instances = append(instances, instance)
 	kc.Configs = instances
@@ -86,12 +88,19 @@ func (instance Instance) GetKotsHealthz() (HealthzResponse, error) {
 		url,
 		nil,
 	)
-
 	if err != nil {
 		return HealthzResponse{}, err
 	}
 	req.Header.Set("Accept", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	client := http.DefaultClient
+	if instance.InsecureSkipVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client.Transport = tr
+	}
+
+	resp, err := client.Do(req)
 
 	if err != nil {
 		return HealthzResponse{}, err
@@ -130,7 +139,14 @@ func (instance Instance) GetApps() (*ListAppsResponse, error) {
 	}
 	appsReq.Header.Set("Accept", "application/json")
 	appsReq.Header.Set("Authorization", *token)
-	appsResp, err := http.DefaultClient.Do(appsReq)
+	client := http.DefaultClient
+	if instance.InsecureSkipVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client.Transport = tr
+	}
+	appsResp, err := client.Do(appsReq)
 	if err != nil {
 		return nil, errors.Wrap(err, "send apps request")
 	}
@@ -191,7 +207,14 @@ func (instance Instance) getLoginToken() (*string, error) {
 	}
 	loginReq.Header.Set("Accept", "application/json")
 	loginReq.Header.Set("Content-Type", "application/json")
-	loginResp, err := http.DefaultClient.Do(loginReq)
+	client := http.DefaultClient
+	if instance.InsecureSkipVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client.Transport = tr
+	}
+	loginResp, err := client.Do(loginReq)
 	if err != nil {
 		return nil, errors.Wrap(err, "send login request")
 	}

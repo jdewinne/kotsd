@@ -10,25 +10,41 @@ Note: This is not officially supported by Replicated. Review the usage instructi
 
 The following commands will only update the local config. Use these to add kots instances to the yaml config. Or list all instances in the config. None of these commands will connect with a running kotsadm instance.
 
-* kotsd add-instance --name= --endpoint= --tlsVerify
+* `kotsd add-instance`
+  * Flags:
+  ```
+  -e, --endpoint string   URL of the kots instance, for example http://10.10.10.5:8800
+  -n, --name string       Name of the kots instance (should be unique)
+  -v, --tlsVerify         If false, insecure or self signed tls for the kots instance will be allowed (default true)
+  ```
+  * Examples:
+  ```
+  kotsd add-instance --name kurl --endpoint https://35.231.189.178:8800 --tlsVerify=0 --config ./.josh/kots.yaml
+  kotsd add-instance --name gke --endpoint http://localhost:8800 --config ./.josh/kots.yaml
+  ```
 * kotsd list-instances
+  * Examples:
+  ```
+  kotsd list-instances --config ./.josh/kots.yaml
+  ```
 
 ### Runtime
 
 The following commands will connect with the specified kotsadm instance(s) using the configuration from the config file, and execute the corresponding command. If no named instances are specified, the command will be executed for all instances in the config.
 
 * `kotsd list [name1, name2, name3, ...]`: List the current kots and application version for each instance. Also list if any new version is available.
-* `kotsd update [name1, name2, name3, ...]`: Update the instance to the latest version available.
+* `kotsd update [name1, name2, name3, ...]`: Update all the apps on the instance to the latest version available.
+* `kotsd update [name1.0, name2.0, name3.0, ...]`: Update only the first (#0) app on the instance to the latest version available.
 
 ### Backlog
 
-kotsd delete-instance --name=
-kotsd update-instance --name= [--endpoint=] [--password=] --tlsVerify
+* kotsd delete-instance --name=
+* kotsd update-instance --name= [--endpoint=] [--password=] --tlsVerify
 
-kotsd redeploy [name1, name2, name3, ...]
-kotsd remove [name1, name2, name3, ...]
-kotsd set-config [name1, name2, name3, ...]
-kotsd support-bundle [name1, name2, name3, ...]
+* kotsd redeploy [name1, name2, name3, ...]
+* kotsd remove [name1, name2, name3, ...]
+* kotsd set-config [name1, name2, name3, ...]
+* kotsd support-bundle [name1, name2, name3, ...]
 
 ## Security
 

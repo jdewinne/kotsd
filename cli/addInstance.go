@@ -19,8 +19,9 @@ func AddInstanceCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name, _ := cmd.Flags().GetString("name")
 			endpoint, _ := cmd.Flags().GetString("endpoint")
+			tlsVerify, _ := cmd.Flags().GetBool("tlsVerify")
 			password, _ := PromptForNewPassword()
-			runtime_conf.AddInstance(name, endpoint, password)
+			runtime_conf.AddInstance(name, endpoint, password, tlsVerify)
 			kotsd.WriteConfig(&runtime_conf, cfgFile)
 			return nil
 

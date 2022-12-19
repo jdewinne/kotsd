@@ -70,9 +70,10 @@ func TestAddInstanceEmpty(t *testing.T) {
 			wantOut: KotsdConfig{
 				Configs: []Instance{
 					{
-						Name:     "kots1",
-						Endpoint: "http://something",
-						Password: base64.StdEncoding.EncodeToString([]byte("1234abcd")),
+						Name:               "kots1",
+						Endpoint:           "http://something",
+						Password:           base64.StdEncoding.EncodeToString([]byte("1234abcd")),
+						InsecureSkipVerify: false,
 					},
 				},
 			},
@@ -82,7 +83,7 @@ func TestAddInstanceEmpty(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := ParseConfig(input)
-			actual.AddInstance("kots1", "http://something", "1234abcd")
+			actual.AddInstance("kots1", "http://something", "1234abcd", true)
 			require.NoError(t, err)
 			require.NotNil(t, actual)
 			require.Len(t, actual.Configs, 1)
@@ -110,9 +111,10 @@ func TestAddInstanceExisting(t *testing.T) {
 						Endpoint: "http://something",
 					},
 					{
-						Name:     "kots2",
-						Endpoint: "http://another",
-						Password: base64.StdEncoding.EncodeToString([]byte("1234abcd")),
+						Name:               "kots2",
+						Endpoint:           "http://another",
+						Password:           base64.StdEncoding.EncodeToString([]byte("1234abcd")),
+						InsecureSkipVerify: false,
 					},
 				},
 			},
@@ -122,7 +124,7 @@ func TestAddInstanceExisting(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := ParseConfig(input)
-			actual.AddInstance("kots2", "http://another", "1234abcd")
+			actual.AddInstance("kots2", "http://another", "1234abcd", true)
 			require.NoError(t, err)
 			require.NotNil(t, actual)
 			require.Len(t, actual.Configs, 2)

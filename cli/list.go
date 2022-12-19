@@ -28,7 +28,7 @@ func ListCmd() *cobra.Command {
 			t := table.NewWriter()
 			t.SetOutputMirror(os.Stdout)
 			t.SetStyle(table.StyleColoredBlackOnBlueWhite)
-			t.AppendHeader(table.Row{"Name", "Kots Version", "Connection", "Application Name", "Version", "Upgrade Available"})
+			t.AppendHeader(table.Row{"Name", "Kots Version", "Connection", "#", "Application Name", "Version", "Upgrade Available"})
 			for range runtime_conf.Configs {
 				i := <-c
 				if len(i.Apps) == 0 {
@@ -36,9 +36,9 @@ func ListCmd() *cobra.Command {
 						{i.Name, i.KotsVersion, i.Error},
 					})
 				}
-				for _, app := range i.Apps {
+				for indx, app := range i.Apps {
 					t.AppendRows([]table.Row{
-						{i.Name, i.KotsVersion, i.Error, app.Name, app.Version, app.PendingVersion},
+						{i.Name, i.KotsVersion, i.Error, indx, app.Name, app.Version, app.PendingVersion},
 					})
 				}
 				t.AppendSeparator()
