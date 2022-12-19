@@ -10,7 +10,7 @@ Note: This is not officially supported by Replicated. Review the usage instructi
 
 The following commands will only update the local config. Use these to add kots instances to the yaml config. Or list all instances in the config. None of these commands will connect with a running kotsadm instance.
 
-* `kotsd add-instance`
+* `kotsd add-instance`: Add a kots instance to the config file.
   * Flags:
   ```
   -e, --endpoint string   URL of the kots instance, for example http://10.10.10.5:8800
@@ -22,7 +22,7 @@ The following commands will only update the local config. Use these to add kots 
   kotsd add-instance --name kurl --endpoint https://35.231.189.178:8800 --tlsVerify=0 --config ./.josh/kots.yaml
   kotsd add-instance --name gke --endpoint http://localhost:8800 --config ./.josh/kots.yaml
   ```
-* kotsd list-instances
+* `kotsd list-instances`: List all kots instances from the config file.
   * Examples:
   ```
   kotsd list-instances --config ./.josh/kots.yaml
@@ -32,8 +32,13 @@ The following commands will only update the local config. Use these to add kots 
 
 The following commands will connect with the specified kotsadm instance(s) using the configuration from the config file, and execute the corresponding command. If no named instances are specified, the command will be executed for all instances in the config.
 
-* `kotsd list [name1, name2, name3, ...]`: List the current kots and application version for each instance. Also list if any new version is available.
-* `kotsd update [name1, name2, name3, ...]`: Update all the apps on the instance to the latest version available.
+* `kotsd list [...name]`: List the current kots and application version for each instance. Also list if any new version is available.
+  * Examples:
+  ```
+  kotsd list --config ./.josh/kots.yaml
+  kotsd list gke kurl --config ./.josh/kots.yaml
+  ```
+* `kotsd update [...name]`: Update all the apps on the instance to the latest version available.
 * `kotsd update [name1.0, name2.0, name3.0, ...]`: Update only the first (#0) app on the instance to the latest version available.
 
 ### Backlog

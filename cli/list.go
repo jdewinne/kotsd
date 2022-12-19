@@ -14,14 +14,19 @@ func ListCmd() *cobra.Command {
 		Use:           "list",
 		Short:         "List all kots instance version and application versions",
 		Long:          `List all kots instance version and application versions`,
+		ArgAliases:    []string{"name"},
 		SilenceUsage:  true,
 		SilenceErrors: false,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c := make(chan kotsd.Instance, len(runtime_conf.Configs))
-			for _, instance := range runtime_conf.Configs {
+			configs := runtime_conf.Configs
+			if len(args) > 0 {
+				configs = filter(configs, args)
+			}
+			c := make(chan kotsd.Instance, len(configs))
+			for _, instance := range configs {
 				go getVersions(c, instance)
 			}
 
@@ -29,7 +34,7 @@ func ListCmd() *cobra.Command {
 			t.SetOutputMirror(os.Stdout)
 			t.SetStyle(table.StyleColoredBlackOnBlueWhite)
 			t.AppendHeader(table.Row{"Name", "Kots Version", "Connection", "#", "Application Name", "Version", "Upgrade Available"})
-			for range runtime_conf.Configs {
+			for range configs {
 				i := <-c
 				if len(i.Apps) == 0 {
 					t.AppendRows([]table.Row{
@@ -50,6 +55,19 @@ func ListCmd() *cobra.Command {
 	}
 
 	return cmd
+}
+
+func filter(instances []kotsd.Instance, args []string) []kotsd.Instance {
+	var configs []kotsd.Instance
+	for _, i := range instances {
+		for _, name := range args {
+			if i.Name == name {
+				configs = append(configs, i)
+				break
+			}
+		}
+	}
+	return configs
 }
 
 func getVersions(c chan kotsd.Instance, i kotsd.Instance) {
