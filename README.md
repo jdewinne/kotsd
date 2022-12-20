@@ -50,6 +50,7 @@ The following commands will connect with the specified kotsadm instance(s) using
 
 * kotsd delete-instance --name=
 * kotsd update-instance --name= [--endpoint=] [--password=] --tlsVerify
+* kotsd version: Display the version of the kotsd binary
 
 * kotsd update [name1.0, name2.0, name3.0, ...]: Update only the first (#0) app on the instance to the latest version available.
 * kotsd redeploy [name1, name2, name3, ...]
