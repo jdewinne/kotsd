@@ -4,6 +4,9 @@ A cli to run commands against **multiple** kots instances.
 
 Note: This is not officially supported by Replicated. Review the usage instructions and Security concerns before using.
 
+![Test workflow](https://github.com/jdewinne/kotsd/actions/workflows/test.yaml/badge.svg)
+![Release workflow](https://github.com/jdewinne/kotsd/actions/workflows/release.yaml/badge.svg)
+
 ## Usage
 
 ### Config
