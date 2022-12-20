@@ -14,10 +14,12 @@ import (
 
 var cfgFile string
 var runtime_conf kotsd.KotsdConfig
+var version = "0.0.1"
 
 func RootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "kotsd",
+		Version:      version,
 		Short:        "Run commands against multiple kots instances",
 		Long:         `Run commands against multiple kots instances`,
 		SilenceUsage: true,
