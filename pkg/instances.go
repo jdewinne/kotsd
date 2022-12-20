@@ -29,9 +29,14 @@ type Instance struct {
 }
 
 type Application struct {
-	Name           string
-	Version        string
-	PendingVersion []string
+	Name            string
+	Version         string
+	PendingVersions []PendingVersion
+}
+
+type PendingVersion struct {
+	VersionLabel string
+	Sequence     int
 }
 
 func ReadConfig(cfgFile string) ([]byte, error) {
@@ -184,6 +189,7 @@ type ResponseDownstream struct {
 
 type DownstreamVersion struct {
 	VersionLabel string `json:"versionLabel"`
+	Sequence     int    `json:"sequence"`
 }
 
 func (instance Instance) getLoginToken() (*string, error) {

@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	kotsd "github.com/jdewinne/kotsd/pkg"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -11,10 +13,9 @@ import (
 
 func ListCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:           "list",
+		Use:           "list [flags] [...name]",
 		Short:         "List all kots instance version and application versions",
 		Long:          `List all kots instance version and application versions`,
-		ArgAliases:    []string{"name"},
 		SilenceUsage:  true,
 		SilenceErrors: false,
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -33,7 +34,7 @@ func ListCmd() *cobra.Command {
 			t := table.NewWriter()
 			t.SetOutputMirror(os.Stdout)
 			t.SetStyle(table.StyleColoredBlackOnBlueWhite)
-			t.AppendHeader(table.Row{"Name", "Kots Version", "Connection", "#", "Application Name", "Version", "Upgrade Available"})
+			t.AppendHeader(table.Row{"Name", "Kots Version", "Connection", "#", "Application Name", "Version", "Upgrades"})
 			for range configs {
 				i := <-c
 				if len(i.Apps) == 0 {
@@ -42,8 +43,16 @@ func ListCmd() *cobra.Command {
 					})
 				}
 				for indx, app := range i.Apps {
+					pversions := "-"
+					if len(app.PendingVersions) > 0 {
+						pversionstrings := []string{}
+						for _, pversion := range app.PendingVersions {
+							pversionstrings = append(pversionstrings, fmt.Sprintf("%d - %s", pversion.Sequence, pversion.VersionLabel))
+						}
+						pversions = strings.Join(pversionstrings, "\n")
+					}
 					t.AppendRows([]table.Row{
-						{i.Name, i.KotsVersion, i.Error, indx, app.Name, app.Version, app.PendingVersion},
+						{i.Name, i.KotsVersion, i.Error, indx, app.Name, app.Version, pversions},
 					})
 				}
 				t.AppendSeparator()
@@ -55,19 +64,6 @@ func ListCmd() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func filter(instances []kotsd.Instance, args []string) []kotsd.Instance {
-	var configs []kotsd.Instance
-	for _, i := range instances {
-		for _, name := range args {
-			if i.Name == name {
-				configs = append(configs, i)
-				break
-			}
-		}
-	}
-	return configs
 }
 
 func getVersions(c chan kotsd.Instance, i kotsd.Instance) {
@@ -83,11 +79,11 @@ func getVersions(c chan kotsd.Instance, i kotsd.Instance) {
 	} else {
 		for _, app := range apps.Apps {
 			application := kotsd.Application{Name: app.Name, Version: app.Downstream.CurrentVersion.VersionLabel}
-			var pVersions []string
+			var pVersions []kotsd.PendingVersion
 			for _, pv := range app.Downstream.PendingVersions {
-				pVersions = append(pVersions, pv.VersionLabel)
+				pVersions = append(pVersions, kotsd.PendingVersion{VersionLabel: pv.VersionLabel, Sequence: pv.Sequence})
 			}
-			application.PendingVersion = pVersions
+			application.PendingVersions = pVersions
 			i.Apps = append(i.Apps, application)
 		}
 	}

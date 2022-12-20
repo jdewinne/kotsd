@@ -67,3 +67,16 @@ func initConfig() {
 	d, _ := kotsd.ReadConfig(cfgFile)
 	runtime_conf, _ = kotsd.ParseConfig(d)
 }
+
+func filter(instances []kotsd.Instance, args []string) []kotsd.Instance {
+	var configs []kotsd.Instance
+	for _, i := range instances {
+		for _, name := range args {
+			if i.Name == name {
+				configs = append(configs, i)
+				break
+			}
+		}
+	}
+	return configs
+}
