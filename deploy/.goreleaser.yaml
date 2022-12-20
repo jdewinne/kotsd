@@ -1,0 +1,37 @@
+project_name: kotsd
+release:
+  github:
+    owner: jdewinne
+    name: kotsd
+  prerelease: "true"
+builds:
+  - id: kotsd
+    goos:
+    - linux
+    - darwin
+    goarch:
+    - amd64
+    - arm64
+    env:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+    main: kotsd.go
+    ldflags: -s -w
+    binary: kotsd
+    hooks: {}
+
+archives:
+  - id: kotsd
+    builds:
+      - kotsd
+    format: tar.gz
+    name_template: '{{ .Binary }}_{{ .Os }}_{{ .Arch }}'
+    files:
+      - licence*
+      - LICENCE*
+      - license*
+      - LICENSE*
+      - readme*
+      - README*
+      - changelog*
+      - CHANGELOG*
