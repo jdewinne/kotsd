@@ -41,5 +41,9 @@ func UpdateCmd() *cobra.Command {
 }
 
 func updateVersions(c chan kotsd.Instance, instance kotsd.Instance) {
-	panic("unimplemented")
+	err := instance.UpdateApps()
+	if err != nil {
+		fmt.Printf("failed to update instance %s", instance.Name)
+	}
+	c <- instance
 }

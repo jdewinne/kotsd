@@ -179,6 +179,7 @@ type ListAppsResponse struct {
 
 type ResponseApp struct {
 	Name       string             `json:"name"`
+	Slug       string             `json:"slug"`
 	Downstream ResponseDownstream `json:"downstream"`
 }
 
@@ -190,6 +191,79 @@ type ResponseDownstream struct {
 type DownstreamVersion struct {
 	VersionLabel string `json:"versionLabel"`
 	Sequence     int    `json:"sequence"`
+}
+
+func (instance Instance) UpdateApps() error {
+	lappr, err := instance.GetApps()
+	if err != nil {
+		return errors.Wrap(err, "get apps")
+	}
+	for _, rapp := range lappr.Apps {
+		if len(rapp.Downstream.PendingVersions) > 0 {
+			sequence := 0
+			for _, pversion := range rapp.Downstream.PendingVersions {
+				if pversion.Sequence > sequence {
+					sequence = pversion.Sequence
+				}
+			}
+			err = instance.updateApp(rapp.Slug, sequence)
+			if err != nil {
+				return errors.Wrap(err, "update app")
+			}
+		}
+	}
+	return nil
+}
+
+func (instance Instance) updateApp(slug string, seq int) error {
+	token, err := instance.getLoginToken()
+	if err != nil {
+		errors.Wrap(err, "get login token")
+	}
+
+	if token == nil {
+		return fmt.Errorf("could not connect")
+	}
+
+	deployParams := map[string]bool{
+		"isSkipPreflights":             false,
+		"continueWithFailedPreflights": true,
+		"isCLI":                        false,
+	}
+
+	deployBody, err := json.Marshal(deployParams)
+	if err != nil {
+		return errors.Wrap(err, "marshal deploy params")
+	}
+
+	updateReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/app/%s/sequence/%d/deploy", instance.Endpoint, slug, seq), bytes.NewBuffer(deployBody))
+	if err != nil {
+		return errors.Wrap(err, "build update request")
+	}
+	updateReq.Header.Set("Accept", "application/json")
+	updateReq.Header.Set("Authorization", *token)
+	client := http.DefaultClient
+	if instance.InsecureSkipVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client.Transport = tr
+	}
+	appsResp, err := client.Do(updateReq)
+	if err != nil {
+		return errors.Wrap(err, "send update request")
+	}
+
+	defer appsResp.Body.Close()
+	if appsResp.StatusCode != 200 {
+		body, _ := io.ReadAll(appsResp.Body)
+		return fmt.Errorf("update %d: %s", appsResp.StatusCode, body)
+	}
+	_, err = io.ReadAll(appsResp.Body)
+	if err != nil {
+		return errors.Wrap(err, "read body")
+	}
+	return nil
 }
 
 func (instance Instance) getLoginToken() (*string, error) {
