@@ -16,7 +16,6 @@ builds:
       - CGO_ENABLED=0
       - GO111MODULE=on
     main: kotsd.go
-    ldflags: -s -w -X 'github.com/jdewinne/kotsd/cli/cli.version={{.Env.REF_NAME}}'
     binary: kotsd
     hooks: {}
 

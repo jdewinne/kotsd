@@ -52,7 +52,8 @@ func RootCmd() *cobra.Command {
 	return cmd
 }
 
-func InitAndExecute() {
+func InitAndExecute(v string) {
+	version = v
 	if err := RootCmd().Execute(); err != nil {
 		os.Exit(1)
 	}
