@@ -8,9 +8,9 @@ import (
 
 func DeleteInstanceCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:           "add-instance",
-		Short:         "Add kots instance",
-		Long:          `Add kots instance`,
+		Use:           "delete-instance",
+		Short:         "Delete kots instance",
+		Long:          `Delete kots instance`,
 		SilenceUsage:  true,
 		SilenceErrors: false,
 		PreRun: func(cmd *cobra.Command, args []string) {
