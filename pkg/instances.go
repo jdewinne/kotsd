@@ -81,6 +81,9 @@ func (kc *KotsdConfig) AddInstance(name string, endpoint string, password string
 	kc.Configs = instances
 }
 
+func (kc *KotsdConfig) DeleteInstance(name string) {
+}
+
 type HealthzResponse struct {
 	Version string `json:"version"`
 	GitSHA  string `json:"gitSha"`

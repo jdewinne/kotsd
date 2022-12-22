@@ -41,6 +41,7 @@ func RootCmd() *cobra.Command {
 
 	cmd.AddCommand(AddInstanceCmd())
 	cmd.AddCommand(ListInstancesCmd())
+	cmd.AddCommand(DeleteInstanceCmd())
 
 	cmd.AddCommand(ListCmd())
 	cmd.AddCommand(UpdateCmd())
