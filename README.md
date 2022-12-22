@@ -30,6 +30,15 @@ The following commands will only update the local config. Use these to add kots 
   ```
   kotsd list-instances --config ./.josh/kots.yaml
   ```
+* `kotsd delete-instance`: Delete a kots instance from the config file.
+  * Flags:
+  ```
+  -n, --name string       Name of the kots instance (should be unique)
+  ```
+  * Examples:
+  ```
+  kotsd delete-instance --name gke
+  ```
 
 ### Runtime
 
@@ -51,9 +60,8 @@ The following commands will connect with the specified kotsadm instance(s) using
 ### Backlog
 
 
-* kotsd delete-instance --name=
+
 * kotsd update-instance --name= [--endpoint=] [--password=] --tlsVerify
-* kotsd version: Display the version of the kotsd binary
 
 * kotsd update [name1.0, name2.0, name3.0, ...]: Update only the first (#0) app on the instance to the latest version available.
 * kotsd redeploy [name1, name2, name3, ...]

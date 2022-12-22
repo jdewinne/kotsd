@@ -133,6 +133,43 @@ func TestAddInstanceExisting(t *testing.T) {
 	}
 }
 
+func TestDeleteInstance(t *testing.T) {
+	input := []byte(`instances:
+- name: kots1
+  endpoint: http://something
+- name: kots2
+  endpoint: http://another`)
+
+	tests := []struct {
+		name    string
+		wantOut KotsdConfig
+	}{
+		{
+			name: "test",
+
+			wantOut: KotsdConfig{
+				Configs: []Instance{
+					{
+						Name:     "kots1",
+						Endpoint: "http://something",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual, err := ParseConfig(input)
+			actual.DeleteInstance("kots2")
+			require.NoError(t, err)
+			require.NotNil(t, actual)
+			require.Len(t, actual.Configs, 1)
+			assert.Equal(t, tt.wantOut.Configs[0], actual.Configs[0])
+		})
+	}
+}
+
 func TestGetLoginToken(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/login" {
