@@ -4,10 +4,9 @@ import (
 	"os"
 
 	"github.com/manifoldco/promptui"
-	"github.com/pkg/errors"
 )
 
-func PromptForPassword() (string, error) {
+func PromptForEndpoint(e string) (string, error) {
 	templates := &promptui.PromptTemplates{
 		Prompt:  "{{ . | bold }} ",
 		Valid:   "{{ . | green }} ",
@@ -16,14 +15,11 @@ func PromptForPassword() (string, error) {
 	}
 
 	prompt := promptui.Prompt{
-		Label:     "Enter the password for the admin console (6+ characters):",
+		Label:     "Enter the endpoint for the admin console:",
+		Default:   e,
+		AllowEdit: true,
 		Templates: templates,
-		Mask:      rune('•'),
 		Validate: func(input string) error {
-			if len(input) < 6 {
-				return errors.New("please enter a longer password")
-			}
-
 			return nil
 		},
 	}

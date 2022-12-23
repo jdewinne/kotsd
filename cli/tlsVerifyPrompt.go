@@ -2,12 +2,12 @@ package cli
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/manifoldco/promptui"
-	"github.com/pkg/errors"
 )
 
-func PromptForPassword() (string, error) {
+func PromptForTlsVerify(tls bool) (bool, error) {
 	templates := &promptui.PromptTemplates{
 		Prompt:  "{{ . | bold }} ",
 		Valid:   "{{ . | green }} ",
@@ -16,15 +16,13 @@ func PromptForPassword() (string, error) {
 	}
 
 	prompt := promptui.Prompt{
-		Label:     "Enter the password for the admin console (6+ characters):",
+		Label:     "Verify TLS:",
+		Default:   strconv.FormatBool(tls),
+		AllowEdit: true,
 		Templates: templates,
-		Mask:      rune('•'),
 		Validate: func(input string) error {
-			if len(input) < 6 {
-				return errors.New("please enter a longer password")
-			}
-
-			return nil
+			_, err := strconv.ParseBool(input)
+			return err
 		},
 	}
 
@@ -37,6 +35,6 @@ func PromptForPassword() (string, error) {
 			continue
 		}
 
-		return result, nil
+		return strconv.ParseBool(result)
 	}
 }

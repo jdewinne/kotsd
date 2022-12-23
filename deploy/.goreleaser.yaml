@@ -3,7 +3,6 @@ release:
   github:
     owner: jdewinne
     name: kotsd
-  prerelease: "true"
 builds:
   - id: kotsd
     goos:

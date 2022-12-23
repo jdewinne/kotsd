@@ -74,11 +74,16 @@ func WriteConfig(config *KotsdConfig, cfgFile string) {
 	}
 }
 
-func (kc *KotsdConfig) AddInstance(name string, endpoint string, password string, tlsVerify bool) {
+func (kc *KotsdConfig) AddInstance(name string, endpoint string, password string, tlsVerify bool) error {
+	in, _ := kc.GetInstance(name)
+	if in != nil {
+		return errors.New("instance name must be unique")
+	}
 	instance := Instance{Name: name, Endpoint: endpoint, Password: base64.StdEncoding.EncodeToString([]byte(password)), InsecureSkipVerify: !tlsVerify}
 	instances := kc.Configs
 	instances = append(instances, instance)
 	kc.Configs = instances
+	return nil
 }
 
 func (kc *KotsdConfig) DeleteInstance(name string) {
@@ -90,6 +95,27 @@ func (kc *KotsdConfig) DeleteInstance(name string) {
 		instances = append(instances, instance)
 	}
 	kc.Configs = instances
+}
+
+func (kc *KotsdConfig) GetInstance(name string) (*Instance, error) {
+	for _, instance := range kc.Configs {
+		if instance.Name == name {
+			return &instance, nil
+		}
+	}
+	return nil, errors.New("get instance")
+}
+
+func (kc *KotsdConfig) UpdateInstance(name string, endpoint string, password string, tlsVerify bool) error {
+	for i, instance := range kc.Configs {
+		if instance.Name == name {
+			kc.Configs[i].Endpoint = endpoint
+			kc.Configs[i].Password = base64.StdEncoding.EncodeToString([]byte(password))
+			kc.Configs[i].InsecureSkipVerify = !tlsVerify
+			return nil
+		}
+	}
+	return errors.New("update instance")
 }
 
 type HealthzResponse struct {
