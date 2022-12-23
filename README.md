@@ -25,6 +25,18 @@ The following commands will only update the local config. Use these to add kots 
   kotsd add-instance --name kurl --endpoint https://35.231.189.178:8800 --tlsVerify=0 --config ./.josh/kots.yaml
   kotsd add-instance --name gke --endpoint http://localhost:8800 --config ./.josh/kots.yaml
   ```
+* `kotsd update-instance`: Update a kots instance in the config file.
+  * Flags:
+  ```
+  -e, --endpoint string   URL of the kots instance, for example http://10.10.10.5:8800
+  -n, --name string       Name of the kots instance (should be unique)
+  -v, --tlsVerify         If false, insecure or self signed tls for the kots instance will be allowed (default true)
+  ```
+  * Examples:
+  ```
+  kotsd update-instance --name kurl --endpoint https://35.231.189.178:8800 --tlsVerify=0 --config ./.josh/kots.yaml
+  kotsd update-instance --name gke --endpoint http://localhost:8800 --config ./.josh/kots.yaml
+  ```
 * `kotsd list-instances`: List all kots instances from the config file.
   * Examples:
   ```
@@ -58,10 +70,6 @@ The following commands will connect with the specified kotsadm instance(s) using
   ```
 
 ### Backlog
-
-
-
-* kotsd update-instance --name= [--endpoint=] [--password=] --tlsVerify
 
 * kotsd update [name1.0, name2.0, name3.0, ...]: Update only the first (#0) app on the instance to the latest version available.
 * kotsd redeploy [name1, name2, name3, ...]
