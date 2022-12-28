@@ -297,3 +297,28 @@ func TestUpdateApps(t *testing.T) {
 	err := i.UpdateApps()
 	require.NoError(t, err)
 }
+
+func TestRedeployApps(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Accept") != "application/json" {
+			t.Errorf("Expected Accept: application/json header, got: %s", r.Header.Get("Accept"))
+		}
+		if r.URL.Path == "/api/v1/apps" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"apps":[{"name":"DemoApp","slug":"demoapp","downstream":{"currentVersion":{"versionLabel":"1.0.2", "sequence": 1},"pendingVersions":[]}}]}`))
+		} else if r.URL.Path == "/api/v1/login" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"token":"abcdefgh"}`))
+		} else if r.URL.Path == "/api/v1/app/demoapp/sequence/1/redeploy" {
+			w.WriteHeader(http.StatusNoContent)
+		} else {
+			t.Errorf("Expected to request '/api/v1/apps' or '/api/v1/login', got: %s", r.URL.Path)
+		}
+
+	}))
+	defer server.Close()
+	i := Instance{Name: "t1", Endpoint: server.URL, Password: base64.StdEncoding.EncodeToString([]byte("1234abcd"))}
+
+	err := i.RedeployApps()
+	require.NoError(t, err)
+}

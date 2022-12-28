@@ -46,6 +46,7 @@ func RootCmd() *cobra.Command {
 
 	cmd.AddCommand(ListCmd())
 	cmd.AddCommand(UpdateCmd())
+	cmd.AddCommand(RedeployCmd())
 
 	viper.BindPFlags(cmd.Flags())
 	viper.AutomaticEnv()
