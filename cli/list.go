@@ -78,7 +78,11 @@ func getVersions(c chan kotsd.Instance, i kotsd.Instance) {
 		i.Error = err.Error()
 	} else {
 		for _, app := range apps.Apps {
-			application := kotsd.Application{Name: app.Name, Version: app.Downstream.CurrentVersion.VersionLabel}
+			versionLabel := "Not defined"
+			if app.Downstream.CurrentVersion != nil {
+				versionLabel = app.Downstream.CurrentVersion.VersionLabel
+			}
+			application := kotsd.Application{Name: app.Name, Version: versionLabel}
 			var pVersions []kotsd.PendingVersion
 			for _, pv := range app.Downstream.PendingVersions {
 				pVersions = append(pVersions, kotsd.PendingVersion{VersionLabel: pv.VersionLabel, Sequence: pv.Sequence})

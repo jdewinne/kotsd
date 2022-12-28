@@ -303,6 +303,63 @@ func (instance Instance) updateApp(slug string, seq int) error {
 	return nil
 }
 
+func (instance Instance) RedeployApps() error {
+	lappr, err := instance.GetApps()
+	if err != nil {
+		return errors.Wrap(err, "get apps")
+	}
+	for _, rapp := range lappr.Apps {
+		if rapp.Downstream.CurrentVersion == nil {
+			return nil
+		}
+		err = instance.redeployApp(rapp.Slug, rapp.Downstream.CurrentVersion.Sequence)
+		if err != nil {
+			return errors.Wrap(err, "redeploy app")
+		}
+	}
+	return nil
+}
+
+func (instance Instance) redeployApp(slug string, seq int) error {
+	token, err := instance.getLoginToken()
+	if err != nil {
+		errors.Wrap(err, "get login token")
+	}
+
+	if token == nil {
+		return fmt.Errorf("could not connect")
+	}
+
+	redeployReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/app/%s/sequence/%d/redeploy", instance.Endpoint, slug, seq), nil)
+	if err != nil {
+		return errors.Wrap(err, "build redeploy request")
+	}
+	redeployReq.Header.Set("Accept", "application/json")
+	redeployReq.Header.Set("Authorization", *token)
+	client := http.DefaultClient
+	if instance.InsecureSkipVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client.Transport = tr
+	}
+	appsResp, err := client.Do(redeployReq)
+	if err != nil {
+		return errors.Wrap(err, "send redeploy request")
+	}
+
+	defer appsResp.Body.Close()
+	if appsResp.StatusCode != 204 {
+		body, _ := io.ReadAll(appsResp.Body)
+		return fmt.Errorf("redeploy %d: %s", appsResp.StatusCode, body)
+	}
+	_, err = io.ReadAll(appsResp.Body)
+	if err != nil {
+		return errors.Wrap(err, "read body")
+	}
+	return nil
+}
+
 func (instance Instance) getLoginToken() (*string, error) {
 	password, err := base64.StdEncoding.DecodeString(instance.Password)
 	if err != nil {

@@ -68,11 +68,16 @@ The following commands will connect with the specified kotsadm instance(s) using
   kotsd update --config ./.josh/kots.yaml
   kotsd update gke --config ./.josh/kots.yaml
   ```
+* `kotsd redeploy [...name]`: Redeploy all the apps on the instance.
+  * Examples:
+  ```
+  kotsd redeploy --config ./.josh/kots.yaml
+  kotsd redeploy gke --config ./.josh/kots.yaml
+  ```
 
 ### Backlog
 
 * kotsd update [name1.0, name2.0, name3.0, ...]: Update only the first (#0) app on the instance to the latest version available.
-* kotsd redeploy [name1, name2, name3, ...]
 * kotsd remove [name1, name2, name3, ...]
 * kotsd set-config [name1, name2, name3, ...]
 * kotsd support-bundle [name1, name2, name3, ...]
