@@ -152,7 +152,7 @@ func (instance Instance) GetKotsHealthz() (HealthzResponse, error) {
 	if err != nil {
 		panic(err.Error())
 	}
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return HealthzResponse{}, fmt.Errorf("GET /healthz %d: %s", resp.StatusCode, body)
 	}
 
@@ -194,7 +194,7 @@ func (instance Instance) GetApps() (*ListAppsResponse, error) {
 	}
 
 	defer appsResp.Body.Close()
-	if appsResp.StatusCode != 200 {
+	if appsResp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(appsResp.Body)
 		return nil, fmt.Errorf("apps %d: %s", appsResp.StatusCode, body)
 	}
@@ -292,7 +292,7 @@ func (instance Instance) updateApp(slug string, seq int) error {
 	}
 
 	defer appsResp.Body.Close()
-	if appsResp.StatusCode != 200 {
+	if appsResp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(appsResp.Body)
 		return fmt.Errorf("update %d: %s", appsResp.StatusCode, body)
 	}
@@ -349,9 +349,75 @@ func (instance Instance) redeployApp(slug string, seq int) error {
 	}
 
 	defer appsResp.Body.Close()
-	if appsResp.StatusCode != 204 {
+	if appsResp.StatusCode != http.StatusNoContent {
 		body, _ := io.ReadAll(appsResp.Body)
 		return fmt.Errorf("redeploy %d: %s", appsResp.StatusCode, body)
+	}
+	_, err = io.ReadAll(appsResp.Body)
+	if err != nil {
+		return errors.Wrap(err, "read body")
+	}
+	return nil
+}
+
+func (instance Instance) RemoveApps() error {
+	lappr, err := instance.GetApps()
+	if err != nil {
+		return errors.Wrap(err, "get apps")
+	}
+	for _, rapp := range lappr.Apps {
+		if rapp.Downstream.CurrentVersion == nil {
+			return nil
+		}
+		err = instance.removeApp(rapp.Slug)
+		if err != nil {
+			return errors.Wrap(err, "remove app")
+		}
+	}
+	return nil
+}
+
+func (instance Instance) removeApp(slug string) error {
+	token, err := instance.getLoginToken()
+	if err != nil {
+		errors.Wrap(err, "get login token")
+	}
+
+	if token == nil {
+		return fmt.Errorf("could not connect")
+	}
+
+	removeParams := map[string]bool{
+		"force": true,
+	}
+
+	removeBody, err := json.Marshal(removeParams)
+	if err != nil {
+		return errors.Wrap(err, "marshal remove params")
+	}
+
+	removeReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/app/%s/remove", instance.Endpoint, slug), bytes.NewBuffer(removeBody))
+	if err != nil {
+		return errors.Wrap(err, "build remove request")
+	}
+	removeReq.Header.Set("Accept", "application/json")
+	removeReq.Header.Set("Authorization", *token)
+	client := http.DefaultClient
+	if instance.InsecureSkipVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client.Transport = tr
+	}
+	appsResp, err := client.Do(removeReq)
+	if err != nil {
+		return errors.Wrap(err, "send remove request")
+	}
+
+	defer appsResp.Body.Close()
+	if appsResp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(appsResp.Body)
+		return fmt.Errorf("remove %d: %s", appsResp.StatusCode, body)
 	}
 	_, err = io.ReadAll(appsResp.Body)
 	if err != nil {
@@ -394,7 +460,7 @@ func (instance Instance) getLoginToken() (*string, error) {
 	}
 
 	defer loginResp.Body.Close()
-	if loginResp.StatusCode != 200 {
+	if loginResp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(loginResp.Body)
 		return nil, fmt.Errorf("login %d: %s", loginResp.StatusCode, body)
 	}
