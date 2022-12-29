@@ -1,4 +1,4 @@
-name: Workflow for Golang using Snyk
+name: Security using Snyk
 on: push
 jobs:
   security:
