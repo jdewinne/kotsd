@@ -6,6 +6,9 @@ Note: This is not officially supported by Replicated. Review the usage instructi
 
 ![Test workflow](https://github.com/jdewinne/kotsd/actions/workflows/test.yaml/badge.svg)
 ![Release workflow](https://github.com/jdewinne/kotsd/actions/workflows/release.yaml/badge.svg)
+![Snyk workflow](https://github.com/jdewinne/kotsd/actions/workflows/snyk.yaml/badge.svg)
+[![Maintainability](https://api.codeclimate.com/v1/badges/2bbb51a1cb5240a2ccd8/maintainability)](https://codeclimate.com/github/jdewinne/kotsd/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/2bbb51a1cb5240a2ccd8/test_coverage)](https://codeclimate.com/github/jdewinne/kotsd/test_coverage)
 
 ## Usage
 
