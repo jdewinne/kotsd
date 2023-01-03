@@ -101,7 +101,6 @@ The following commands will connect with the specified kotsadm instance(s) using
 
 ### Backlog
 
-* kotsd remove [name1.0, name2.0, name3.0, ...]: Remove only the first (#0) app on the instance.
 * kotsd set-config [name1, name2, name3, ...]
 * kotsd support-bundle [name1, name2, name3, ...]
 
