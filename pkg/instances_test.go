@@ -294,7 +294,7 @@ func TestUpdateApps(t *testing.T) {
 	defer server.Close()
 	i := Instance{Name: "t1", Endpoint: server.URL, Password: base64.StdEncoding.EncodeToString([]byte("1234abcd"))}
 
-	err := i.UpdateApps()
+	err := i.UpdateApps("")
 	require.NoError(t, err)
 }
 
@@ -319,7 +319,7 @@ func TestRedeployApps(t *testing.T) {
 	defer server.Close()
 	i := Instance{Name: "t1", Endpoint: server.URL, Password: base64.StdEncoding.EncodeToString([]byte("1234abcd"))}
 
-	err := i.RedeployApps()
+	err := i.RedeployApps("")
 	require.NoError(t, err)
 }
 
@@ -344,6 +344,6 @@ func TestRemoveApps(t *testing.T) {
 	defer server.Close()
 	i := Instance{Name: "t1", Endpoint: server.URL, Password: base64.StdEncoding.EncodeToString([]byte("1234abcd"))}
 
-	err := i.RemoveApps()
+	err := i.RemoveApps("")
 	require.NoError(t, err)
 }
