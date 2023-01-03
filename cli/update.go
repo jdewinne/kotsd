@@ -20,12 +20,13 @@ func UpdateCmd() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configs := runtime_conf.Configs
+			slug, _ := cmd.Flags().GetString("slug")
 			if len(args) > 0 {
 				configs = filter(configs, args)
 			}
 			c := make(chan kotsd.Instance, len(configs))
 			for _, instance := range configs {
-				go updateVersions(c, instance)
+				go updateVersions(c, instance, slug)
 			}
 			for range configs {
 				i := <-c
@@ -37,11 +38,13 @@ func UpdateCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().StringP("slug", "s", "", "Specify the application slug of the application you wish to update")
+
 	return cmd
 }
 
-func updateVersions(c chan kotsd.Instance, instance kotsd.Instance) {
-	err := instance.UpdateApps()
+func updateVersions(c chan kotsd.Instance, instance kotsd.Instance, slug string) {
+	err := instance.UpdateApps(slug)
 	if err != nil {
 		fmt.Printf("failed to update instance %s", instance.Name)
 	}

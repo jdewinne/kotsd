@@ -30,6 +30,7 @@ type Instance struct {
 
 type Application struct {
 	Name            string
+	Slug            string
 	Version         string
 	PendingVersions []PendingVersion
 }
@@ -230,12 +231,15 @@ type DownstreamVersion struct {
 	Sequence     int    `json:"sequence"`
 }
 
-func (instance Instance) UpdateApps() error {
+func (instance Instance) UpdateApps(slug string) error {
 	lappr, err := instance.GetApps()
 	if err != nil {
 		return errors.Wrap(err, "get apps")
 	}
 	for _, rapp := range lappr.Apps {
+		if slug != "" && rapp.Slug != slug {
+			continue
+		}
 		if len(rapp.Downstream.PendingVersions) > 0 {
 			sequence := 0
 			for _, pversion := range rapp.Downstream.PendingVersions {
@@ -303,7 +307,7 @@ func (instance Instance) updateApp(slug string, seq int) error {
 	return nil
 }
 
-func (instance Instance) RedeployApps() error {
+func (instance Instance) RedeployApps(slug string) error {
 	lappr, err := instance.GetApps()
 	if err != nil {
 		return errors.Wrap(err, "get apps")
@@ -311,6 +315,9 @@ func (instance Instance) RedeployApps() error {
 	for _, rapp := range lappr.Apps {
 		if rapp.Downstream.CurrentVersion == nil {
 			return nil
+		}
+		if slug != "" && rapp.Slug != slug {
+			continue
 		}
 		err = instance.redeployApp(rapp.Slug, rapp.Downstream.CurrentVersion.Sequence)
 		if err != nil {
@@ -360,7 +367,7 @@ func (instance Instance) redeployApp(slug string, seq int) error {
 	return nil
 }
 
-func (instance Instance) RemoveApps() error {
+func (instance Instance) RemoveApps(slug string) error {
 	lappr, err := instance.GetApps()
 	if err != nil {
 		return errors.Wrap(err, "get apps")
@@ -368,6 +375,9 @@ func (instance Instance) RemoveApps() error {
 	for _, rapp := range lappr.Apps {
 		if rapp.Downstream.CurrentVersion == nil {
 			return nil
+		}
+		if slug != "" && rapp.Slug != slug {
+			continue
 		}
 		err = instance.removeApp(rapp.Slug)
 		if err != nil {

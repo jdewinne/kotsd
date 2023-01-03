@@ -34,7 +34,7 @@ func ListCmd() *cobra.Command {
 			t := table.NewWriter()
 			t.SetOutputMirror(os.Stdout)
 			t.SetStyle(table.StyleColoredBlackOnBlueWhite)
-			t.AppendHeader(table.Row{"Name", "Kots Version", "Connection", "#", "Application Name", "Version", "Upgrades"})
+			t.AppendHeader(table.Row{"Name", "Kots Version", "Connection", "#", "Application Name", "Application Slug", "Version", "Upgrades"})
 			for range configs {
 				i := <-c
 				if len(i.Apps) == 0 {
@@ -52,7 +52,7 @@ func ListCmd() *cobra.Command {
 						pversions = strings.Join(pversionstrings, "\n")
 					}
 					t.AppendRows([]table.Row{
-						{i.Name, i.KotsVersion, i.Error, indx, app.Name, app.Version, pversions},
+						{i.Name, i.KotsVersion, i.Error, indx, app.Name, app.Slug, app.Version, pversions},
 					})
 				}
 				t.AppendSeparator()
@@ -82,7 +82,7 @@ func getVersions(c chan kotsd.Instance, i kotsd.Instance) {
 			if app.Downstream.CurrentVersion != nil {
 				versionLabel = app.Downstream.CurrentVersion.VersionLabel
 			}
-			application := kotsd.Application{Name: app.Name, Version: versionLabel}
+			application := kotsd.Application{Name: app.Name, Slug: app.Slug, Version: versionLabel}
 			var pVersions []kotsd.PendingVersion
 			for _, pv := range app.Downstream.PendingVersions {
 				pVersions = append(pVersions, kotsd.PendingVersion{VersionLabel: pv.VersionLabel, Sequence: pv.Sequence})

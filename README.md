@@ -66,28 +66,41 @@ The following commands will connect with the specified kotsadm instance(s) using
   kotsd list gke kurl --config ./.josh/kots.yaml
   ```
 * `kotsd update [...name]`: Update all the apps on the instance to the latest sequence number available.
+  * Flags:
+  ```
+  -s, --slug string   Specify the application slug of the application you wish to update
+  ```
   * Examples:
   ```
   kotsd update --config ./.josh/kots.yaml
   kotsd update gke --config ./.josh/kots.yaml
+  kotsd update gke kurl -s sentry-pro --config ./.josh/kots.yaml
   ```
 * `kotsd redeploy [...name]`: Redeploy all the apps on the instance.
+  * Flags:
+  ```
+  -s, --slug string   Specify the application slug of the application you wish to redeploy
+  ```
   * Examples:
   ```
   kotsd redeploy --config ./.josh/kots.yaml
   kotsd redeploy gke --config ./.josh/kots.yaml
+  kotsd redeploy gke kurl -s sentry-pro --config ./.josh/kots.yaml
   ```
 * `kotsd remove [...name]`: Remove all the apps on the instance.
+  * Flags:
+  ```
+  -s, --slug string   Specify the application slug of the application you wish to remove
+  ```
   * Examples:
   ```
   kotsd remove --config ./.josh/kots.yaml
   kotsd remove gke --config ./.josh/kots.yaml
+  kotsd remove gke kurl -s sentry-pro --config ./.josh/kots.yaml
   ```
 
 ### Backlog
 
-* kotsd update [name1.0, name2.0, name3.0, ...]: Update only the first (#0) app on the instance to the latest version available.
-* kotsd redeploy [name1.0, name2.0, name3.0, ...]: Redeploy only the first (#0) app on the instance.
 * kotsd remove [name1.0, name2.0, name3.0, ...]: Remove only the first (#0) app on the instance.
 * kotsd set-config [name1, name2, name3, ...]
 * kotsd support-bundle [name1, name2, name3, ...]
