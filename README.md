@@ -103,6 +103,9 @@ The following commands will connect with the specified kotsadm instance(s) using
 
 * kotsd set-config [name1, name2, name3, ...]
 * kotsd support-bundle [name1, name2, name3, ...]
+* kotsd check-for-update [name1, name2, name3, ...]
+* kotsd set-update-cron-schedule --pattern * * * * * [name1, name2, name3, ...]
+* kotsd set-auto-update [on, off, patch, minor, ...] [name1, name2, name3, ...]
 
 ## Security
 
