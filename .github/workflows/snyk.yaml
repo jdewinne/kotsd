@@ -12,6 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - name: Set work directory as Git safe directory in Docker
+        run: |
+          git config --global safe.directory '*'
+          mkdir -p /home/runner/runner/agent/_work/_temp/_github_home
+          cp "$HOME/.gitconfig" "/home/runner/runner/agent/_work/_temp/_github_home/.gitconfig"
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
         continue-on-error: true # To make sure that SARIF upload gets called
